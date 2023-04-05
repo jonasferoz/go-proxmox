@@ -23,8 +23,8 @@ func TestNewTask(t *testing.T) {
 
 func TestTask_JsonUnmarshalNoEndTime(t *testing.T) {
 	// no duration from a not completed task
-	data := `{"pstart":165231870,"type":"testtype","status":"teststatus","id":"test.iso","node":"testnode","user":"root@pam","pid":3161937,"upid":"UPID:i7:00303F51:09D93CFE:61CCA568:download:8fd77349e9f6.iso:root@pam:","starttime":1641020400}`
-	starttime := time.Date(2022, time.January, 01, 0, 0, 0, 0, time.Local)
+	data := `{"pstart":165231870,"type":"testtype","status":"teststatus","id":"test.iso","node":"testnode","user":"root@pam","pid":3161937,"upid":"UPID:i7:00303F51:09D93CFE:61CCA568:download:8fd77349e9f6.iso:root@pam:","starttime":1640995200}`
+	starttime := time.Date(2022, time.January, 01, 0, 0, 0, 0, time.UTC)
 
 	var task proxmox.Task
 	assert.Nil(t, json.Unmarshal([]byte(data), &task))
@@ -40,9 +40,9 @@ func TestTask_JsonUnmarshalNoEndTime(t *testing.T) {
 
 func TestTask_JsonUnmarshalWithEndTime(t *testing.T) {
 	// with an endtime from the cluster wide /cluster/tasks status log and will calc duration
-	data := `{"pstart":165231870,"type":"testtype","status":"teststatus","id":"test.iso","node":"testnode","user":"root@pam","pid":3161937,"upid":"UPID:i7:00303F51:09D93CFE:61CCA568:download:8fd77349e9f6.iso:root@pam:","starttime":1641020400, "endtime":1641020460}`
-	starttime := time.Date(2022, time.January, 01, 0, 0, 0, 0, time.Local)
-	endtime := time.Date(2022, time.January, 01, 0, 1, 0, 0, time.Local)
+	data := `{"pstart":165231870,"type":"testtype","status":"teststatus","id":"test.iso","node":"testnode","user":"root@pam","pid":3161937,"upid":"UPID:i7:00303F51:09D93CFE:61CCA568:download:8fd77349e9f6.iso:root@pam:","starttime":1640995200, "endtime":1640995260}`
+	starttime := time.Date(2022, time.January, 01, 0, 0, 0, 0, time.UTC)
+	endtime := time.Date(2022, time.January, 01, 0, 1, 0, 0, time.UTC)
 
 	var task proxmox.Task
 	assert.Nil(t, json.Unmarshal([]byte(data), &task))

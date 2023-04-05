@@ -517,30 +517,78 @@ type Task struct {
 	Duration     time.Duration `json:"-"`
 }
 
+type Epoch struct {
+	time.Time
+}
+type EpochInterval struct {
+	StartTime Epoch
+	EndTime   Epoch
+}
+
+func (e *Epoch) UnmarshalJSON(b []byte) error {
+	var timestamp int64
+	if err := json.Unmarshal(b, &timestamp); err != nil {
+		return err
+	}
+
+	e.Time = time.Unix(timestamp, 0).UTC()
+	return nil
+}
+
 func (t *Task) UnmarshalJSON(b []byte) error {
 	var tmp map[string]interface{}
 	if err := json.Unmarshal(b, &tmp); err != nil {
 		return err
 	}
 
-	type TempTask Task
-	var task TempTask
-	if err := json.Unmarshal(b, &task); err != nil {
+	var epochInterval EpochInterval
+	if err := json.Unmarshal(b, &epochInterval); err != nil {
 		return err
 	}
 
-	if starttime, ok := tmp["starttime"]; ok {
-		task.StartTime = time.Unix(int64(starttime.(float64)), 0)
-	}
+	type TempTask Task
+	var task TempTask
+	for k, v := range tmp {
+		switch k {
+		case "upid":
+			task.UPID = UPID(v.(string))
+		case "id":
+			task.ID = v.(string)
+		case "type":
+			task.Type = v.(string)
+		case "user":
+			task.User = v.(string)
+		case "status":
+			task.Status = v.(string)
+		case "node":
+			task.Node = v.(string)
+		case "pid":
+			task.PID = uint64(v.(float64))
+		case "pstart":
+			task.PStart = uint64(v.(float64))
+		case "saved":
+			task.Saved = v.(string)
+		case "exitstatus":
+			task.ExitStatus = v.(string)
+		case "iscompleted":
+			task.IsCompleted = v.(bool)
+		case "isrunning":
+			task.IsRunning = v.(bool)
+		case "isfailed":
+			task.IsFailed = v.(bool)
+		case "issuccessful":
+			task.IsSuccessful = v.(bool)
+		case "starttime":
+			task.StartTime = epochInterval.StartTime.Time
+		case "endtime":
+			task.EndTime = epochInterval.EndTime.Time
+		}
 
-	if endtime, ok := tmp["endtime"]; ok {
-		task.EndTime = time.Unix(int64(endtime.(float64)), 0)
-	}
+		if !task.StartTime.IsZero() && !task.EndTime.IsZero() {
+			task.Duration = task.EndTime.Sub(task.StartTime)
+		}
 
-	if !task.StartTime.IsZero() && !task.EndTime.IsZero() {
-		task.Duration = task.EndTime.Sub(task.StartTime)
 	}
-
 	c := Task(task)
 	return copier.Copy(t, &c)
 }
